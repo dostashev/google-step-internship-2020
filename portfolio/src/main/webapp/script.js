@@ -1,7 +1,7 @@
 class ArticleCard {
   constructor(title, text, photoURL, url) {
     this.title = title;
-    this.text = text
+    this.text = text;
     this.photoURL = photoURL;
     this.url = url;
   }
