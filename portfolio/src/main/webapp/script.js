@@ -42,7 +42,7 @@ class ArticleCard {
   };
 }
 
-window.onload = () => {
+function loadArticleCards() {
  
   // TODO: Add getting articles from backend
   let cards = [
@@ -73,4 +73,66 @@ window.onload = () => {
   ];
 
   cards.forEach(card => document.getElementById("articles-container").appendChild(card.html));
+}
+
+class BlogEntry {
+  constructor(title, content) {
+    this.title = title;
+    this.content = content;
+  }
+
+  get html() {
+    let blogEntry = document.createElement("div");
+    blogEntry.className = "blog-entry";
+
+    blogEntry.innerHTML = `
+      <h2 class="blog-entry-header">${this.title}</h2>
+      <div class="blog-entry-content">${this.content}</div>
+    `;
+
+    return blogEntry;
+  } 
+}
+
+function loadBlogEntries() {
+
+  // TODO: Add getting blog entries from backend
+  let blogEntries = [
+    new BlogEntry(
+      "My cover band",
+      `
+      <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+        <p style="max-width: 400px">
+          I've established a cover band with my friends recently. 
+          We all love rock music and make covers of such bands as
+          Linkin Park, System of a Down, Black Sabbath, Nightwish. 
+          <br><br>
+          Most of us don't have musical education, but we're trying our best.
+          <br><br>
+          I sometimes post our covers to my Instagram, so follow me if you are interested in hearing them.
+        </p>
+        <img src="static/band.jpg" class="drops-shadow" style="width: 50%; height: 50%;">
+      </div>
+      `,
+    ),
+    new BlogEntry(
+      "My family member",
+      `
+        <div style="display: flex; justify-content: flex-begin; flex-wrap: wrap-reverse;">
+          <img src="static/Rico1.jpg" class="drops-shadow" style="width: 20%; height: 20%;">
+          <img src="static/Rico2.jpg" class="drops-shadow" style="width: 20%; height: 20%; margin-left: 20px;">
+          <p style="max-width: 400px; margin-left: 20px">
+            This is Rico, a Jack Russell Terrier.
+            <br><br>
+            He's a very energetic dog, loves playing and
+            having long walks in the park.
+            <br><br>
+            As a terrier, Rico is an earthdog, he is good at hunting and brought several medals from various competitions.
+          </p>
+        </div>
+      `,
+    ),
+  ];
+
+  blogEntries.forEach(entry => document.getElementById("blog-container").appendChild(entry.html));
 }
