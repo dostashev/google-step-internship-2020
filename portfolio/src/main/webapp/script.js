@@ -136,3 +136,52 @@ function loadBlogEntries() {
 
   blogEntries.forEach(entry => document.getElementById("blog-container").appendChild(entry.html));
 }
+
+function jsonFromForm(form){
+  let formArray = $(form).serializeArray();
+  let json = {};
+
+  formArray.forEach((field, _) => json[field.name] = field.value);
+
+  return json;
+}
+
+function submitComment(form) {
+  let commentJSON = jsonFromForm(form);
+
+  document.getElementById("comment-input").value = "";
+
+  fetch("/comments", {
+    method: "POST",
+    body: JSON.stringify(commentJSON)
+  })
+    .then(refreshComments);
+
+  return false;
+}
+
+class Comment {
+  constructor(author, text) {
+    this.author = author;
+    this.text = text;
+  }
+
+  get html() {
+    return new BlogEntry(`${this.author} says:`, this.text).html;
+  }
+}
+
+function refreshComments() {
+  fetch("/comments")
+    .then(response => response.json())
+    .then(comments => {
+      let commentList = document.getElementById("comment-list");
+
+      commentList.innerHTML = "";
+
+      comments.forEach(comment => {
+        comment.__proto__ = new Comment();
+        commentList.appendChild(comment.html);
+      });
+    });
+}
