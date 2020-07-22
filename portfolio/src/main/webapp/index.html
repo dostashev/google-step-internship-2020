@@ -9,17 +9,22 @@
   <body>
     <div id="content">
       <h1>Daniel Ostashev</h1>
-      <img src="static/me.jpg" id="my-photo"> 
+      <div class="topnav">
+        <a class="active" href="index.html">Home</a>
+        <a href="blog.html">Blog</a>
+      </div>
+      <br>
+      <img src="static/me.jpg" class="drops-shadow" id="my-photo"> 
       <p>This is my portfolio.</p>
-      <div class="text-paragraph">
-        <h2>About</h2>
-        <p>
+      <div class="blog-entry">
+        <h2 class="blog-entry-header">About</h2>
+        <div class="blog-entry-content">
           My name is Daniel. I’ve just finished my first year at Kharkiv National University, Ukraine.
           My major of study is mathematics, but we get taught quite a bit of computer science as well.
           I have a passion for programming and I’ve participated in many CS olympiads and algorithmic contests (like ICPC)
           starting from school. Also I’m really fond of playing table tennis and badminton and also I enjoy freestyle roller skating.
           Apart from that, I play guitar (and try to learn to sing) and we've even established a cover band with my friends recently.
-        </p>
+        </div>
       </div>
       <h2>Connect with me</h2>
       <div>
@@ -29,6 +34,7 @@
       </div>
       <h2>My projects</h2>
       <div id="articles-container"></div>
+      <script type="text/javascript">loadArticleCards()</script>
     </div>
   </body>
 </html>
