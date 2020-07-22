@@ -10,8 +10,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
-import com.google.sps.services.CommentsService;
-import com.google.sps.services.DatastoreCommentsService;
+import com.google.sps.services.CommentsRepository;
+import com.google.sps.services.CommentsValidator;
+import com.google.sps.services.CommentsValidatorImpl;
+import com.google.sps.services.DatastoreCommentsRepository;
 
 /** Servlet that handles GET/POST requests for comments */
 @WebServlet("/comments")
@@ -31,13 +33,15 @@ public final class CommentsServlet extends HttpServlet {
     
     Reader bodyReader = request.getReader();
     Comment comment = parseComment(bodyReader);
-
-    commentsService.addComment(comment);
+    
+    if (commentsValidator.isValid(comment)) {
+      commentsRepository.addComment(comment);
+    }
   }
 
   private String getSerializedComments() {
     return gson.toJson(
-      commentsService.getAllComments()
+      commentsRepository.getAllComments()
     );
   }
 
@@ -45,7 +49,8 @@ public final class CommentsServlet extends HttpServlet {
     return gson.fromJson(jsonReader, Comment.class);
   }
 
-  private CommentsService commentsService = new DatastoreCommentsService();
+  private CommentsRepository commentsRepository = new DatastoreCommentsRepository();
+  private CommentsValidator commentsValidator = new CommentsValidatorImpl();
 
   private Gson gson = new Gson();
 }

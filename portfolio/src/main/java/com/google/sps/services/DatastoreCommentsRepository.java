@@ -10,7 +10,7 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.sps.data.Comment;
 
-public class DatastoreCommentsService implements CommentsService {
+public class DatastoreCommentsRepository implements CommentsRepository {
 
     @Override
     public List<Comment> getAllComments() {

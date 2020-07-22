@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.google.sps.data.Comment;
 
-public interface CommentsService {
+public interface CommentsRepository {
     List<Comment> getAllComments();
     void addComment(Comment comment);
 }
