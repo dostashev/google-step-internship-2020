@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 
+import javax.naming.AuthenticationException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import com.google.sps.services.CommentsRepository;
@@ -28,19 +31,19 @@ public final class CommentsServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType(CONTENT_TYPE);
-    response.getWriter()
-      .println(getSerializedComments());
+    response.getWriter().println(getSerializedComments());
   }
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    
+
     Reader bodyReader = request.getReader();
     Comment comment = parseComment(bodyReader);
-    
+
     if (commentsValidator.isValid(comment)) {
-      commentsRepository.addComment(comment);
-      response.setStatus(204);
+      String deleteKey = commentsRepository.addComment(comment, null);
+
+      response.getWriter().write(deleteKey);
     } else {
       response.setStatus(400);
     }
@@ -49,10 +52,16 @@ public final class CommentsServlet extends HttpServlet {
   @Override
   protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     long id = Long.parseLong(request.getParameter("id"));
+    String deleteKey = request.getParameter("deleteKey");
 
-    commentsRepository.deleteComment(id);
-
-    response.setStatus(204);
+    try {
+      commentsRepository.deleteComment(id, deleteKey);
+      response.setStatus(204);
+    } catch (AuthenticationException e) {
+      response.setStatus(401);
+    } catch (EntityNotFoundException e) {
+      response.setStatus(404);
+    }
   }
 
   private String getSerializedComments() {

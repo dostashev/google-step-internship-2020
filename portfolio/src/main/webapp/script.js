@@ -155,7 +155,11 @@ function submitComment(form) {
     method: "POST",
     body: JSON.stringify(commentJSON)
   })
-    .then(refreshComments);
+    .then(response => response.text())
+    .then(deleteKey => {
+      alert(`Delete key for this comment: ${deleteKey}`);
+      refreshComments();
+    });
 
   return false;
 }
@@ -199,7 +203,9 @@ function refreshComments() {
 }
 
 function deleteComment(id) {
-  fetch(`/comments?id=${id}`, {
+  let deleteKey = prompt("Enter your delete key:");
+
+  fetch(`/comments?id=${id}&deleteKey=${deleteKey}`, {
     method: "DELETE"
   })
     .then(refreshComments);

@@ -1,10 +1,14 @@
 package com.google.sps.services;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.naming.AuthenticationException;
+
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -36,7 +40,12 @@ public class DatastoreCommentsRepository implements CommentsRepository {
     }
 
     @Override
-    public void addComment(Comment comment) {
+    public String addComment(Comment comment, String deleteKey) {
+
+        if (deleteKey == null) {
+            deleteKey = generateDeleteKey();
+        }
+
         Entity commentEntity = new Entity(ENTITY_NAME);
 
         long timestamp = System.currentTimeMillis();
@@ -44,17 +53,41 @@ public class DatastoreCommentsRepository implements CommentsRepository {
         commentEntity.setProperty("timestamp", timestamp);
         commentEntity.setProperty("author", comment.author);
         commentEntity.setProperty("text", comment.text);
+        commentEntity.setProperty("deleteKey", deleteKey);
 
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         datastore.put(commentEntity);
+
+        return deleteKey;
     }
 
     @Override
-    public void deleteComment(long id) {
+    public void deleteComment(long id, String deleteKey) throws AuthenticationException, EntityNotFoundException {
         Key entityKey = KeyFactory.createKey(ENTITY_NAME, id);
 
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-        datastore.delete(entityKey);
+        
+        Entity entity = datastore.get(entityKey);
+
+        String entityDeleteKey = (String) entity.getProperty("deleteKey");
+
+        if (entityDeleteKey.equals(deleteKey)) {
+            datastore.delete(entityKey);
+        } else {
+            throw new AuthenticationException("Incorrect deleteKey was provided");
+        }
+
     }
     
+    private String generateDeleteKey() {
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < 10; i++) {
+            builder.append((char) (65 + rng.nextInt(26)));
+        }
+
+        return builder.toString();
+    }
+
+    private SecureRandom rng = new SecureRandom();
 }
