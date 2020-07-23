@@ -2,6 +2,7 @@ package com.google.sps.servlets;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.List;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -14,6 +15,8 @@ import com.google.sps.services.CommentsRepository;
 import com.google.sps.services.CommentsValidator;
 import com.google.sps.services.CommentsValidatorImpl;
 import com.google.sps.services.DatastoreCommentsRepository;
+
+import org.apache.commons.text.StringEscapeUtils;
 
 /** Servlet that handles GET/POST requests for comments */
 @WebServlet("/comments")
@@ -36,13 +39,21 @@ public final class CommentsServlet extends HttpServlet {
     
     if (commentsValidator.isValid(comment)) {
       commentsRepository.addComment(comment);
+      response.setStatus(204);
+    } else {
+      response.setStatus(400);
     }
   }
 
   private String getSerializedComments() {
-    return gson.toJson(
-      commentsRepository.getAllComments()
-    );
+    List<Comment> comments = commentsRepository.getAllComments();
+
+    comments.forEach((comment) -> { 
+      comment.author = StringEscapeUtils.escapeHtml4(comment.author);
+      comment.text = StringEscapeUtils.escapeHtml4(comment.text);
+    });
+
+    return gson.toJson(comments);
   }
 
   private Comment parseComment(Reader jsonReader) {
