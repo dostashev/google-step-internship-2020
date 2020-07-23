@@ -161,13 +161,25 @@ function submitComment(form) {
 }
 
 class Comment {
-  constructor(author, text) {
+  constructor(id, author, text) {
+    this.id = id
     this.author = author;
     this.text = text;
   }
 
   get html() {
-    return new BlogEntry(`${this.author} says:`, this.text).html;
+    let comment = new BlogEntry(`${this.author} says:`, this.text).html;
+
+    let deleteButton = document.createElement("button");
+    deleteButton.innerText = "Delete";
+    deleteButton.className = "comment-delete";
+    deleteButton.innerHTML = `<i class="fa fa-close"></i>`;
+
+    deleteButton.onclick = () => deleteComment(this.id);
+
+    comment.insertBefore(deleteButton, comment.firstChild);
+
+    return comment;
   }
 }
 
@@ -184,4 +196,11 @@ function refreshComments() {
         commentList.appendChild(comment.html);
       });
     });
+}
+
+function deleteComment(id) {
+  fetch(`/comments?id=${id}`, {
+    method: "DELETE"
+  })
+    .then(refreshComments);
 }

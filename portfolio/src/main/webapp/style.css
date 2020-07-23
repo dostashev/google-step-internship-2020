@@ -76,6 +76,7 @@ body {
 
 .blog-entry-header {
   margin-top: 0px;
+  overflow-wrap: break-word;
 }
 
 .blog-entry-content {
@@ -155,6 +156,7 @@ div.comment-author {
 
 .comment-author input {
   min-width: 0;
+  flex-grow: 1;
 }
 
 .comment-text {
@@ -184,4 +186,18 @@ div.comment-author {
 
 .comment-submit:active {
   background-color: #808080;
+}
+
+.comment-delete {
+  float: right;
+  border: none;
+  background: none;
+  padding: 0px 4px;
+  color: white;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.comment-delete:active {
+  color: #cccccc;
 }

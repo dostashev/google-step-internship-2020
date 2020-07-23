@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
@@ -12,9 +14,11 @@ import com.google.sps.data.Comment;
 
 public class DatastoreCommentsRepository implements CommentsRepository {
 
+    private static final String ENTITY_NAME = "Comment";
+
     @Override
     public List<Comment> getAllComments() {
-        Query query = new Query("Comment").addSort("timestamp", SortDirection.DESCENDING);
+        Query query = new Query(ENTITY_NAME).addSort("timestamp", SortDirection.DESCENDING);
 
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
@@ -33,7 +37,7 @@ public class DatastoreCommentsRepository implements CommentsRepository {
 
     @Override
     public void addComment(Comment comment) {
-        Entity commentEntity = new Entity("Comment");
+        Entity commentEntity = new Entity(ENTITY_NAME);
 
         long timestamp = System.currentTimeMillis();
 
@@ -43,6 +47,14 @@ public class DatastoreCommentsRepository implements CommentsRepository {
 
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         datastore.put(commentEntity);
+    }
+
+    @Override
+    public void deleteComment(long id) {
+        Key entityKey = KeyFactory.createKey(ENTITY_NAME, id);
+
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        datastore.delete(entityKey);
     }
     
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +44,15 @@ public final class CommentsServlet extends HttpServlet {
     } else {
       response.setStatus(400);
     }
+  }
+
+  @Override
+  protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    long id = Long.parseLong(request.getParameter("id"));
+
+    commentsRepository.deleteComment(id);
+
+    response.setStatus(204);
   }
 
   private String getSerializedComments() {
