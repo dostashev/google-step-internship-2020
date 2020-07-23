@@ -157,8 +157,8 @@ function submitComment(form) {
   })
     .then(response => response.text())
     .then(deleteKey => {
-      alert(`Delete key for this comment: ${deleteKey}`);
       refreshComments();
+      alert(`Delete key for this comment: ${deleteKey}`);
     });
 
   return false;
@@ -203,10 +203,19 @@ function refreshComments() {
 }
 
 function deleteComment(id) {
-  let deleteKey = prompt("Enter your delete key:");
 
-  fetch(`/comments?id=${id}&deleteKey=${deleteKey}`, {
+  fetch(`/comments?id=${id}`, {
     method: "DELETE"
   })
-    .then(refreshComments);
+    .then(response => {
+      if (response.ok) {
+        refreshComments();
+      } else {
+        let deleteKey = prompt("Enter delete key for this comment:");
+        fetch(`/comments?id=${id}&deleteKey=${deleteKey}`, {
+          method: "DELETE"
+        })
+          .then(refreshComments);
+      }
+    });
 }

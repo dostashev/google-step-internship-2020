@@ -2,12 +2,16 @@ package com.google.sps.servlets;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import javax.naming.AuthenticationException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,9 +45,13 @@ public final class CommentsServlet extends HttpServlet {
     Comment comment = parseComment(bodyReader);
 
     if (commentsValidator.isValid(comment)) {
-      String deleteKey = commentsRepository.addComment(comment, null);
+      Optional<String> deleteKey = getDeleteKeyFromRequest(request);
 
-      response.getWriter().write(deleteKey);
+      String newDeleteKey = commentsRepository.addComment(comment, deleteKey);;
+
+      response.addCookie(new Cookie("deleteKey", newDeleteKey));
+      response.getWriter().print(newDeleteKey);
+      response.setStatus(201);
     } else {
       response.setStatus(400);
     }
@@ -52,12 +60,17 @@ public final class CommentsServlet extends HttpServlet {
   @Override
   protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     long id = Long.parseLong(request.getParameter("id"));
-    String deleteKey = request.getParameter("deleteKey");
+
+    String deleteKey = getDeleteKeyFromRequest(request)
+        .orElseGet(() -> request.getParameter("deleteKey"));
 
     try {
       commentsRepository.deleteComment(id, deleteKey);
+
+      response.addCookie(new Cookie("deleteKey", deleteKey));
       response.setStatus(204);
     } catch (AuthenticationException e) {
+      response.addCookie(new Cookie("deleteKey", null));
       response.setStatus(401);
     } catch (EntityNotFoundException e) {
       response.setStatus(404);
@@ -77,6 +90,14 @@ public final class CommentsServlet extends HttpServlet {
 
   private Comment parseComment(Reader jsonReader) {
     return gson.fromJson(jsonReader, Comment.class);
+  }
+
+  private Optional<String> getDeleteKeyFromRequest(HttpServletRequest request) {
+    return Arrays.stream(request.getCookies())
+      .filter(cookie -> cookie.getName().equals("deleteKey"))
+      .findFirst()
+      .map(cookie -> cookie.getValue())
+      .filter(value -> !value.isEmpty());
   }
 
   private CommentsRepository commentsRepository = new DatastoreCommentsRepository();

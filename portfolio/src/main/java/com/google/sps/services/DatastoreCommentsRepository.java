@@ -3,6 +3,7 @@ package com.google.sps.services;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.naming.AuthenticationException;
 
@@ -40,10 +41,12 @@ public class DatastoreCommentsRepository implements CommentsRepository {
     }
 
     @Override
-    public String addComment(Comment comment, String deleteKey) {
+    public String addComment(Comment comment, Optional<String> deleteKey) {
 
-        if (deleteKey == null) {
-            deleteKey = generateDeleteKey();
+        String entityDeleteKey = deleteKey.orElseGet(this::generateDeleteKey);
+
+        if (!deleteKey.isPresent()) {
+            deleteKey = Optional.of(generateDeleteKey());
         }
 
         Entity commentEntity = new Entity(ENTITY_NAME);
@@ -53,12 +56,12 @@ public class DatastoreCommentsRepository implements CommentsRepository {
         commentEntity.setProperty("timestamp", timestamp);
         commentEntity.setProperty("author", comment.author);
         commentEntity.setProperty("text", comment.text);
-        commentEntity.setProperty("deleteKey", deleteKey);
+        commentEntity.setProperty("deleteKey", entityDeleteKey);
 
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         datastore.put(commentEntity);
 
-        return deleteKey;
+        return entityDeleteKey;
     }
 
     @Override

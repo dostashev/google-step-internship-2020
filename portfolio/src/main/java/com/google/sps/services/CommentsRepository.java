@@ -1,6 +1,7 @@
 package com.google.sps.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.naming.AuthenticationException;
 
@@ -13,7 +14,7 @@ public interface CommentsRepository {
     /**
      * @return A key to delete the comment
      */
-    String addComment(Comment comment, String deleteKey);
+    String addComment(Comment comment, Optional<String> deleteKey);
 
     void deleteComment(long id, String deleteKey) throws AuthenticationException, EntityNotFoundException;
 }
