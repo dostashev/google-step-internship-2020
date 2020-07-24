@@ -72,7 +72,7 @@ function loadArticleCards() {
     )
   ];
 
-  cards.forEach(card => document.getElementById("articles-container").appendChild(card.html));
+  cards.forEach(card => $("#articles-container")[0].appendChild(card.html));
 }
 
 class BlogEntry {
@@ -134,7 +134,7 @@ function loadBlogEntries() {
     ),
   ];
 
-  blogEntries.forEach(entry => document.getElementById("blog-container").appendChild(entry.html));
+  blogEntries.forEach(entry => $("#blog-container")[0].appendChild(entry.html));
 }
 
 function jsonFromForm(form){
@@ -149,7 +149,7 @@ function jsonFromForm(form){
 function submitComment(form) {
   let commentJSON = jsonFromForm(form);
 
-  document.getElementById("comment-input").value = "";
+  $("#comment-input").val("");
 
   fetch("/comments", {
     method: "POST",
@@ -191,12 +191,12 @@ function refreshComments() {
   fetch("/comments")
     .then(response => response.json())
     .then(comments => {
-      let commentList = document.getElementById("comment-list");
+      let commentList = $("#comment-list")[0];
 
       commentList.innerHTML = "";
 
-      comments.forEach(comment => {
-        comment.__proto__ = new Comment();
+      comments.forEach(commentJSON => {
+        let comment = new Comment(commentJSON.author, commentJSON.text);
         commentList.appendChild(comment.html);
       });
     });
