@@ -11,16 +11,27 @@ import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.ObjectifyService;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
-public class ObjectifyCommentsRepository implements CommentsRepository {
+public class ObjectifyCommentsRepository implements PaginationCommentsRepository {
 
     static {
         ObjectifyService.register(Comment.class);
     }
 
     @Override
-    public List<Comment> getAllComments() {
-        return ofy().load().type(Comment.class).order("-timestamp").list();
-    }
+	public int getCommentsCount() {
+        return ofy().load().type(Comment.class).count();
+	}
+
+	@Override
+	public List<Comment> getCommentsPage(int page, int pageSize) {
+        // TODO: Use Cursor instead of offset to improve performance
+        return ofy().load()
+            .type(Comment.class)
+            .order("-timestamp")
+            .offset((page - 1) * pageSize)
+            .limit(pageSize)
+            .list();
+	}
 
     @Override
     public String addComment(Comment comment, Optional<String> deleteKey) {

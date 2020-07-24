@@ -2,6 +2,7 @@ package com.google.sps.servlets;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -17,10 +18,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
-import com.google.sps.services.CommentsRepository;
 import com.google.sps.services.CommentsValidator;
 import com.google.sps.services.CommentsValidatorImpl;
 import com.google.sps.services.ObjectifyCommentsRepository;
+import com.google.sps.services.PaginationCommentsRepository;
 import com.googlecode.objectify.NotFoundException;
 
 import org.apache.commons.text.StringEscapeUtils;
@@ -30,11 +31,29 @@ import org.apache.commons.text.StringEscapeUtils;
 public final class CommentsServlet extends HttpServlet {
 
   public static final String CONTENT_TYPE = "application/json;";
+  public static final int DEFAULT_PAGE_SIZE = 10;
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+    int page;
+    try {
+      page = Integer.parseInt(request.getParameter("page"));
+    } catch (Exception e) {
+      page = 1;
+    }
+
+    int pageSize;
+    try {
+      pageSize = Integer.parseInt(request.getParameter("pageSize"));
+    } catch (Exception e) {
+      pageSize = DEFAULT_PAGE_SIZE;
+    }
+
+    response.setHeader("Link", getPaginationHeader(page, pageSize));
+
     response.setContentType(CONTENT_TYPE);
-    response.getWriter().println(getSerializedComments());
+    response.getWriter().println(getSerializedComments(page, pageSize));
   }
 
   @Override
@@ -80,10 +99,34 @@ public final class CommentsServlet extends HttpServlet {
     }
   }
 
-  private String getSerializedComments() {
-    List<Comment> comments = commentsRepository.getAllComments();
+  private String getPaginationHeader(int page, int pageSize) {
+    StringBuilder linkHeader = new StringBuilder();
 
-    comments.forEach((comment) -> { 
+    linkHeader.append(MessageFormat.format("/comments?page=1&pageSize={0}; rel=\"first\"", pageSize));
+
+    if (page > 1) {
+      linkHeader.append(", ");
+      linkHeader.append(MessageFormat.format("/comments?page={0}&pageSize={1}; rel=\"prev\"", page - 1, pageSize));
+    }
+
+    int commentsCount = commentsRepository.getCommentsCount();
+
+    if (commentsCount > page * pageSize) {
+      linkHeader.append(", ");
+      linkHeader.append(MessageFormat.format("/comments?page={0}&pageSize={1}; rel=\"next\"", page + 1, pageSize));
+    }
+
+    linkHeader.append(", ");
+    int lastPageNumber = (commentsCount + pageSize - 1) / pageSize;
+    linkHeader.append(MessageFormat.format("/comments?page={0}&pageSize={1}; rel=\"last\"", lastPageNumber, pageSize));
+
+    return linkHeader.toString();
+  }
+
+  private String getSerializedComments(int page, int pageSize) {
+    List<Comment> comments = commentsRepository.getCommentsPage(page, pageSize);
+
+    comments.forEach((comment) -> {
       comment.author = StringEscapeUtils.escapeHtml4(comment.author);
       comment.text = StringEscapeUtils.escapeHtml4(comment.text);
     });
@@ -108,7 +151,7 @@ public final class CommentsServlet extends HttpServlet {
       .filter(value -> !value.isEmpty());
   }
 
-  private CommentsRepository commentsRepository = new ObjectifyCommentsRepository();
+  private PaginationCommentsRepository commentsRepository = new ObjectifyCommentsRepository();
   private CommentsValidator commentsValidator = new CommentsValidatorImpl();
 
   private Gson gson = new Gson();
