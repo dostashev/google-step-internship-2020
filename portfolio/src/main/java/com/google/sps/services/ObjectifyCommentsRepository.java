@@ -19,7 +19,7 @@ public class ObjectifyCommentsRepository implements CommentsRepository {
 
     @Override
     public List<Comment> getAllComments() {
-        return ofy().load().type(Comment.class).list();
+        return ofy().load().type(Comment.class).order("-timestamp").list();
     }
 
     @Override
