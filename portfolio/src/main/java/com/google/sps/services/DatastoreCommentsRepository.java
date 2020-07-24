@@ -45,10 +45,6 @@ public class DatastoreCommentsRepository implements CommentsRepository {
 
         String entityDeleteKey = deleteKey.orElseGet(this::generateDeleteKey);
 
-        if (!deleteKey.isPresent()) {
-            deleteKey = Optional.of(generateDeleteKey());
-        }
-
         Entity commentEntity = new Entity(ENTITY_NAME);
 
         long timestamp = System.currentTimeMillis();
