@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>My Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <div id="content">
+      <h1>Daniel Ostashev</h1>
+      <div class="topnav">
+        <a href="index.html">Home</a>
+        <a href="blog.html">Blog</a>
+        <a class="active" href="feedback.html">Feedback</a>
+      </div>
+      <br>
+      <div id="comment-editor">
+        <h2>Tell me what you think:</h2>
+        <form onsubmit="return submitComment(this)">
+          <div class="comment-author">
+            <label for="author">Your name:</label><input class="comment-author" name="author" maxlength="30">
+          </div>
+          <textarea class="comment-text" name="text" id="comment-input" maxlength="1500"></textarea>
+          <button class="comment-submit" type="submit">Leave comment</button>
+        </form>
+      </div>
+      <div id="comment-list"></div>
+      <script type="text/javascript">refreshComments()</script>
+    </div>
+  </body>
+</html>

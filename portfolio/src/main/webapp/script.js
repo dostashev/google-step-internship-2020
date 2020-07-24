@@ -72,7 +72,7 @@ function loadArticleCards() {
     )
   ];
 
-  cards.forEach(card => document.getElementById("articles-container").appendChild(card.html));
+  cards.forEach(card => $("#articles-container")[0].appendChild(card.html));
 }
 
 class BlogEntry {
@@ -134,5 +134,54 @@ function loadBlogEntries() {
     ),
   ];
 
-  blogEntries.forEach(entry => document.getElementById("blog-container").appendChild(entry.html));
+  blogEntries.forEach(entry => $("#blog-container")[0].appendChild(entry.html));
+}
+
+function jsonFromForm(form){
+  let formArray = $(form).serializeArray();
+  let json = {};
+
+  formArray.forEach((field, _) => json[field.name] = field.value);
+
+  return json;
+}
+
+function submitComment(form) {
+  let commentJSON = jsonFromForm(form);
+
+  $("#comment-input").val("");
+
+  fetch("/comments", {
+    method: "POST",
+    body: JSON.stringify(commentJSON)
+  })
+    .then(refreshComments);
+
+  return false;
+}
+
+class Comment {
+  constructor(author, text) {
+    this.author = author;
+    this.text = text;
+  }
+
+  get html() {
+    return new BlogEntry(`${this.author} says:`, this.text).html;
+  }
+}
+
+function refreshComments() {
+  fetch("/comments")
+    .then(response => response.json())
+    .then(comments => {
+      let commentList = $("#comment-list")[0];
+
+      commentList.innerHTML = "";
+
+      comments.forEach(commentJSON => {
+        let comment = new Comment(commentJSON.author, commentJSON.text);
+        commentList.appendChild(comment.html);
+      });
+    });
 }
