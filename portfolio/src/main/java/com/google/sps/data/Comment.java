@@ -19,5 +19,7 @@ public final class Comment {
         this.deleteKey = deleteKey;
     }
 
-    public Comment() {}
+    public Comment() {
+        this.timestamp = System.currentTimeMillis();
+    }
 }
