@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import javax.naming.AuthenticationException;
@@ -45,7 +44,7 @@ public final class CommentsServlet extends HttpServlet {
     Comment comment = parseComment(bodyReader);
 
     if (commentsValidator.isValid(comment)) {
-      Optional<String> deleteKey = getDeleteKeyFromRequest(request);
+      Optional<String> deleteKey = getDeleteKeyFromCookie(request);
 
       String newDeleteKey = commentsRepository.addComment(comment, deleteKey);;
 
@@ -61,7 +60,7 @@ public final class CommentsServlet extends HttpServlet {
   protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     long id = Long.parseLong(request.getParameter("id"));
 
-    String deleteKey = getDeleteKeyFromRequest(request)
+    String deleteKey = getDeleteKeyFromCookie(request)
         .orElseGet(() -> request.getParameter("deleteKey"));
 
     try {
@@ -70,7 +69,6 @@ public final class CommentsServlet extends HttpServlet {
       response.addCookie(new Cookie("deleteKey", deleteKey));
       response.setStatus(204);
     } catch (AuthenticationException e) {
-      response.addCookie(new Cookie("deleteKey", null));
       response.setStatus(401);
     } catch (EntityNotFoundException e) {
       response.setStatus(404);
@@ -92,7 +90,7 @@ public final class CommentsServlet extends HttpServlet {
     return gson.fromJson(jsonReader, Comment.class);
   }
 
-  private Optional<String> getDeleteKeyFromRequest(HttpServletRequest request) {
+  private Optional<String> getDeleteKeyFromCookie(HttpServletRequest request) {
     return Arrays.stream(request.getCookies())
       .filter(cookie -> cookie.getName().equals("deleteKey"))
       .findFirst()
