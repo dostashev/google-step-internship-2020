@@ -15,13 +15,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import com.google.sps.services.CommentsRepository;
 import com.google.sps.services.CommentsValidator;
 import com.google.sps.services.CommentsValidatorImpl;
-import com.google.sps.services.DatastoreCommentsRepository;
+import com.google.sps.services.ObjectifyCommentsRepository;
+import com.googlecode.objectify.NotFoundException;
 
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -75,7 +75,7 @@ public final class CommentsServlet extends HttpServlet {
       response.setStatus(204);
     } catch (AuthenticationException e) {
       response.setStatus(401);
-    } catch (EntityNotFoundException e) {
+    } catch (NotFoundException e) {
       response.setStatus(404);
     }
   }
@@ -108,7 +108,7 @@ public final class CommentsServlet extends HttpServlet {
       .filter(value -> !value.isEmpty());
   }
 
-  private CommentsRepository commentsRepository = new DatastoreCommentsRepository();
+  private CommentsRepository commentsRepository = new ObjectifyCommentsRepository();
   private CommentsValidator commentsValidator = new CommentsValidatorImpl();
 
   private Gson gson = new Gson();

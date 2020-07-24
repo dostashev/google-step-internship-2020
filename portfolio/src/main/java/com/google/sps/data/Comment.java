@@ -1,15 +1,22 @@
 package com.google.sps.data;
 
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+
+@Entity
 public final class Comment {
-    public long id;
+    @Id public Long id;
     public long timestamp;
     public String author;
     public String text;
+    public transient String deleteKey;
 
-    public Comment(long id, long timestamp, String author, String text) {
-        this.id = id;
-        this.timestamp = timestamp;
+    public Comment(String author, String text, String deleteKey) {
+        this.timestamp = System.currentTimeMillis();
         this.author = author;
         this.text = text;
-	}
+        this.deleteKey = deleteKey;
+    }
+    
+    public Comment() {}
 }
