@@ -196,7 +196,7 @@ function refreshComments() {
       commentList.innerHTML = "";
 
       comments.forEach(commentJSON => {
-        let comment = new Comment(commentJSON.author, commentJSON.text);
+        let comment = new Comment(commentJSON.id, commentJSON.author, commentJSON.text);
         commentList.appendChild(comment.html);
       });
     });
