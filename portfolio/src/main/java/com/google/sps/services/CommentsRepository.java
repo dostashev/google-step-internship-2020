@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import javax.naming.AuthenticationException;
 
-import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.sps.data.Comment;
+import com.googlecode.objectify.NotFoundException;
 
 public interface CommentsRepository {
     List<Comment> getAllComments();
@@ -16,5 +16,5 @@ public interface CommentsRepository {
      */
     String addComment(Comment comment, Optional<String> deleteKey);
 
-    void deleteComment(long id, String deleteKey) throws AuthenticationException, EntityNotFoundException;
+    void deleteComment(long id, String deleteKey) throws AuthenticationException, NotFoundException;
 }
