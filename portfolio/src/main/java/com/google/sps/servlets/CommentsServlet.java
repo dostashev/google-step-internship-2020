@@ -63,6 +63,11 @@ public final class CommentsServlet extends HttpServlet {
     String deleteKey = getDeleteKeyFromCookie(request)
         .orElseGet(() -> request.getParameter("deleteKey"));
 
+    if (deleteKey == null) {
+      response.setStatus(401);
+      return;
+    }
+
     try {
       commentsRepository.deleteComment(id, deleteKey);
 
@@ -91,7 +96,12 @@ public final class CommentsServlet extends HttpServlet {
   }
 
   private Optional<String> getDeleteKeyFromCookie(HttpServletRequest request) {
-    return Arrays.stream(request.getCookies())
+    Cookie[] cookies = request.getCookies();
+
+    if (cookies == null)
+      cookies = new Cookie[0];
+
+    return Arrays.stream(cookies)
       .filter(cookie -> cookie.getName().equals("deleteKey"))
       .findFirst()
       .map(cookie -> cookie.getValue())
