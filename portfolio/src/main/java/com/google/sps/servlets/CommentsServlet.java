@@ -2,13 +2,20 @@ package com.google.sps.servlets;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+import javax.naming.AuthenticationException;
+
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import com.google.sps.services.CommentsRepository;
@@ -27,21 +34,49 @@ public final class CommentsServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType(CONTENT_TYPE);
-    response.getWriter()
-      .println(getSerializedComments());
+    response.getWriter().println(getSerializedComments());
   }
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    
+
     Reader bodyReader = request.getReader();
     Comment comment = parseComment(bodyReader);
-    
+
     if (commentsValidator.isValid(comment)) {
-      commentsRepository.addComment(comment);
-      response.setStatus(204);
+      Optional<String> deleteKey = getDeleteKeyFromCookie(request);
+
+      String newDeleteKey = commentsRepository.addComment(comment, deleteKey);;
+
+      response.addCookie(new Cookie("deleteKey", newDeleteKey));
+      response.getWriter().print(newDeleteKey);
+      response.setStatus(201);
     } else {
       response.setStatus(400);
+    }
+  }
+
+  @Override
+  protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    long id = Long.parseLong(request.getParameter("id"));
+
+    String deleteKey = getDeleteKeyFromCookie(request)
+        .orElseGet(() -> request.getParameter("deleteKey"));
+
+    if (deleteKey == null) {
+      response.setStatus(401);
+      return;
+    }
+
+    try {
+      commentsRepository.deleteComment(id, deleteKey);
+
+      response.addCookie(new Cookie("deleteKey", deleteKey));
+      response.setStatus(204);
+    } catch (AuthenticationException e) {
+      response.setStatus(401);
+    } catch (EntityNotFoundException e) {
+      response.setStatus(404);
     }
   }
 
@@ -58,6 +93,19 @@ public final class CommentsServlet extends HttpServlet {
 
   private Comment parseComment(Reader jsonReader) {
     return gson.fromJson(jsonReader, Comment.class);
+  }
+
+  private Optional<String> getDeleteKeyFromCookie(HttpServletRequest request) {
+    Cookie[] cookies = request.getCookies();
+
+    if (cookies == null)
+      cookies = new Cookie[0];
+
+    return Arrays.stream(cookies)
+      .filter(cookie -> cookie.getName().equals("deleteKey"))
+      .findFirst()
+      .map(cookie -> cookie.getValue())
+      .filter(value -> !value.isEmpty());
   }
 
   private CommentsRepository commentsRepository = new DatastoreCommentsRepository();

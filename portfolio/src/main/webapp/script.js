@@ -155,19 +155,35 @@ function submitComment(form) {
     method: "POST",
     body: JSON.stringify(commentJSON)
   })
-    .then(refreshComments);
+    .then(response => response.text())
+    .then(deleteKey => {
+      refreshComments();
+      alert(`Delete key for this comment: ${deleteKey}`);
+    });
 
   return false;
 }
 
 class Comment {
-  constructor(author, text) {
+  constructor(id, author, text) {
+    this.id = id
     this.author = author;
     this.text = text;
   }
 
   get html() {
-    return new BlogEntry(`${this.author} says:`, this.text).html;
+    let comment = new BlogEntry(`${this.author} says:`, this.text).html;
+
+    let deleteButton = document.createElement("button");
+    deleteButton.innerText = "Delete";
+    deleteButton.className = "comment-delete";
+    deleteButton.innerHTML = `<i class="fa fa-close"></i>`;
+
+    deleteButton.onclick = () => deleteComment(this.id);
+
+    comment.insertBefore(deleteButton, comment.firstChild);
+
+    return comment;
   }
 }
 
@@ -180,8 +196,26 @@ function refreshComments() {
       commentList.innerHTML = "";
 
       comments.forEach(commentJSON => {
-        let comment = new Comment(commentJSON.author, commentJSON.text);
+        let comment = new Comment(commentJSON.id, commentJSON.author, commentJSON.text);
         commentList.appendChild(comment.html);
       });
+    });
+}
+
+function deleteComment(id) {
+
+  fetch(`/comments?id=${id}`, {
+    method: "DELETE"
+  })
+    .then(response => {
+      if (response.ok) {
+        refreshComments();
+      } else {
+        let deleteKey = prompt("Enter delete key for this comment:");
+        fetch(`/comments?id=${id}&deleteKey=${deleteKey}`, {
+          method: "DELETE"
+        })
+          .then(refreshComments);
+      }
     });
 }
