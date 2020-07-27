@@ -27,6 +27,13 @@
           <button class="comment-submit" type="submit">Leave comment</button>
         </form>
       </div>
+      <div id="page-selector">
+         <button onclick="commentLoader.loadFirstPage()">First page</button>
+         <button id="prev-page-button" onclick="commentLoader.loadPrevPage()">Prev page</button>
+         <input id="comments-per-page" type="number" value="10" min="1" max="100" onchange="refreshComments()">
+         <button id="next-page-button" onclick="commentLoader.loadNextPage()">Next page</button>
+         <button onclick="commentLoader.loadLastPage()">Last page</button>
+      </div>
       <div id="comment-list"></div>
       <script type="text/javascript">refreshComments()</script>
     </div>

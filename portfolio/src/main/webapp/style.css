@@ -201,3 +201,7 @@ div.comment-author {
 .comment-delete:active {
   color: #cccccc;
 }
+
+#comments-per-page {
+  width: 40px;
+}

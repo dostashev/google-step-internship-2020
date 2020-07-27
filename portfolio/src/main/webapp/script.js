@@ -43,7 +43,7 @@ class ArticleCard {
 }
 
 function loadArticleCards() {
- 
+
   // TODO: Add getting articles from backend
   let cards = [
     new ArticleCard(
@@ -91,7 +91,7 @@ class BlogEntry {
     `;
 
     return blogEntry;
-  } 
+  }
 }
 
 function loadBlogEntries() {
@@ -103,9 +103,9 @@ function loadBlogEntries() {
       `
       <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
         <p style="max-width: 400px">
-          I've established a cover band with my friends recently. 
+          I've established a cover band with my friends recently.
           We all love rock music and make covers of such bands as
-          Linkin Park, System of a Down, Black Sabbath, Nightwish. 
+          Linkin Park, System of a Down, Black Sabbath, Nightwish.
           <br><br>
           Most of us don't have musical education, but we're trying our best.
           <br><br>
@@ -187,19 +187,80 @@ class Comment {
   }
 }
 
-function refreshComments() {
-  fetch("/comments")
-    .then(response => response.json())
-    .then(comments => {
-      let commentList = $("#comment-list")[0];
+class CommentLoader {
+  constructor() {
+    this.currentPageLink = `/comments?pageSize=${$("#comments-per-page").val()}`;
+  }
 
-      commentList.innerHTML = "";
+  loadCurrentPage() {
+    fetch(this.currentPageLink)
+      .then(response => {
+        this.extractPageLinks(response);
+        return response.json();
+      })
+      .then(comments => {
+        let commentList = $("#comment-list")[0];
 
-      comments.forEach(commentJSON => {
-        let comment = new Comment(commentJSON.id, commentJSON.author, commentJSON.text);
-        commentList.appendChild(comment.html);
+        commentList.innerHTML = "";
+
+        comments.forEach(commentJSON => {
+          let comment = new Comment(commentJSON.id, commentJSON.author, commentJSON.text);
+          commentList.appendChild(comment.html);
+        });
       });
-    });
+  }
+
+  loadFirstPage() {
+    this.currentPageLink = this.firstPageLink;
+    this.loadCurrentPage();
+  }
+
+  loadPrevPage() {
+    this.currentPageLink = this.prevPageLink;
+    this.loadCurrentPage();
+  }
+
+  loadNextPage() {
+    this.currentPageLink = this.nextPageLink;
+    this.loadCurrentPage();
+  }
+
+  loadLastPage() {
+    this.currentPageLink = this.lastPageLink;
+    this.loadCurrentPage();
+  }
+
+  extractPageLinks(response) {
+    let links = response.headers.get("Link")
+      .split(", ")
+      .map(link => link.match('(.*); rel="(.*)"').slice(1));
+
+    let prevPageLink = links.find(x => x[1] == "prev");
+    if (prevPageLink) {
+      this.prevPageLink = prevPageLink[0];
+      $("#prev-page-button").attr("disabled", false);
+    } else {
+      $("#prev-page-button").attr("disabled", true);
+    }
+
+    let nextPageLink = links.find(x => x[1] == "next");
+    if (nextPageLink) {
+      this.nextPageLink = nextPageLink[0];
+      $("#next-page-button").attr("disabled", false);
+    } else {
+      $("#next-page-button").attr("disabled", true);
+    }
+
+    this.firstPageLink = links.find(x => x[1] == "first")[0];
+    this.lastPageLink = links.find(x => x[1] == "last")[0];
+  }
+}
+
+let commentLoader = new CommentLoader();
+
+function refreshComments() {
+  commentLoader = new CommentLoader();
+  commentLoader.loadCurrentPage();
 }
 
 function deleteComment(id) {
