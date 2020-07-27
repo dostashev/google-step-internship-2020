@@ -1,11 +1,15 @@
 package com.google.sps.services;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 
 import javax.naming.AuthenticationException;
 
+import com.google.cloud.language.v1.Document;
+import com.google.cloud.language.v1.LanguageServiceClient;
+import com.google.cloud.language.v1.Sentiment;
 import com.google.sps.data.Comment;
 import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.ObjectifyService;
@@ -38,6 +42,12 @@ public class ObjectifyCommentsRepository implements PaginationCommentsRepository
 
         comment.deleteKey = deleteKey.orElseGet(this::generateDeleteKey);
 
+        try {
+            comment.sentimentScore = getSentimentScore(comment.text);
+        } catch (IOException e) {
+            comment.sentimentScore = 0;
+        }
+
         ofy().save().entity(comment).now();
 
         return comment.deleteKey;
@@ -64,6 +74,14 @@ public class ObjectifyCommentsRepository implements PaginationCommentsRepository
         }
 
         return builder.toString();
+    }
+
+    private float getSentimentScore(String text) throws IOException {
+        LanguageServiceClient languageService = LanguageServiceClient.create();
+        Document doc = Document.newBuilder().setContent(text).setType(Document.Type.PLAIN_TEXT).build();
+        Sentiment sentiment = languageService.analyzeSentiment(doc).getDocumentSentiment();
+        languageService.close();
+        return sentiment.getScore();
     }
 
     private SecureRandom rng = new SecureRandom();
