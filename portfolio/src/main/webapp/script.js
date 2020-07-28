@@ -165,14 +165,15 @@ function submitComment(form) {
 }
 
 class Comment {
-  constructor(id, author, text) {
+  constructor(id, author, text, sentimentScore) {
     this.id = id
     this.author = author;
     this.text = text;
+    this.sentimentScore = sentimentScore;
   }
 
   get html() {
-    let comment = new BlogEntry(`${this.author} says:`, this.text).html;
+    let comment = new BlogEntry(`${this.sentimentEmoji} ${this.author} says:`, this.text).html;
 
     let deleteButton = document.createElement("button");
     deleteButton.innerText = "Delete";
@@ -184,6 +185,12 @@ class Comment {
     comment.insertBefore(deleteButton, comment.firstChild);
 
     return comment;
+  }
+
+  get sentimentEmoji() {
+    let sentimentEmojis = ["🙁", "😕", "😐", "🙂", "😀"];
+
+    return sentimentEmojis[Math.floor((this.sentimentScore + 1) * 0.5 * sentimentEmojis.length)];
   }
 }
 
@@ -204,7 +211,7 @@ class CommentLoader {
         commentList.innerHTML = "";
 
         comments.forEach(commentJSON => {
-          let comment = new Comment(commentJSON.id, commentJSON.author, commentJSON.text);
+          let comment = new Comment(commentJSON.id, commentJSON.author, commentJSON.text, commentJSON.sentimentScore);
           commentList.appendChild(comment.html);
         });
       });

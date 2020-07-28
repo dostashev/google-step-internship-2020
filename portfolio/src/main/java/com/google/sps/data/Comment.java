@@ -10,6 +10,7 @@ public final class Comment {
     @Index public long timestamp;
     public String author;
     public String text;
+    public float sentimentScore;
     public transient String deleteKey;
 
     public Comment(String author, String text, String deleteKey) {
