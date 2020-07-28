@@ -11,6 +11,7 @@ public final class Comment {
     public String author;
     public String text;
     public float sentimentScore;
+    public String imageURL;
     public transient String deleteKey;
 
     public Comment(String author, String text, String deleteKey) {

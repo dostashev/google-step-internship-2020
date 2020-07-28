@@ -2,9 +2,12 @@ package com.google.sps.servlets;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.naming.AuthenticationException;
@@ -16,6 +19,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.blobstore.BlobInfoFactory;
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import com.google.appengine.api.images.ImagesService;
+import com.google.appengine.api.images.ImagesServiceFactory;
+import com.google.appengine.api.images.ServingUrlOptions;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import com.google.sps.services.CommentsValidator;
@@ -59,8 +70,11 @@ public final class CommentsServlet extends HttpServlet {
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-    Reader bodyReader = request.getReader();
-    Comment comment = parseComment(bodyReader);
+    Comment comment = new Comment();
+
+    comment.author = request.getParameter("author");
+    comment.text = request.getParameter("text");
+    comment.imageURL = getUploadedFileUrl(request, "image");
 
     if (commentsValidator.isValid(comment)) {
       Optional<String> deleteKey = getDeleteKeyFromCookie(request);
@@ -134,10 +148,6 @@ public final class CommentsServlet extends HttpServlet {
     return gson.toJson(comments);
   }
 
-  private Comment parseComment(Reader jsonReader) {
-    return gson.fromJson(jsonReader, Comment.class);
-  }
-
   private Optional<String> getDeleteKeyFromCookie(HttpServletRequest request) {
     Cookie[] cookies = request.getCookies();
 
@@ -149,6 +159,36 @@ public final class CommentsServlet extends HttpServlet {
       .findFirst()
       .map(cookie -> cookie.getValue())
       .filter(value -> !value.isEmpty());
+  }
+
+  private String getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
+    BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+    Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
+    List<BlobKey> blobKeys = blobs.get("image");
+
+    if (blobKeys == null || blobKeys.isEmpty()) {
+      return null;
+    }
+
+    BlobKey blobKey = blobKeys.get(0);
+
+    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+    if (blobInfo.getSize() == 0) {
+      blobstoreService.delete(blobKey);
+      return null;
+    }
+
+    // TODO: Check that the file is a valid image
+
+    ImagesService imagesService = ImagesServiceFactory.getImagesService();
+    ServingUrlOptions options = ServingUrlOptions.Builder.withBlobKey(blobKey);
+
+    try {
+      URL url = new URL(imagesService.getServingUrl(options));
+      return url.getPath();
+    } catch (MalformedURLException e) {
+      return imagesService.getServingUrl(options);
+    }
   }
 
   private PaginationCommentsRepository commentsRepository = new ObjectifyCommentsRepository();

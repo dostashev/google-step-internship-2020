@@ -147,33 +147,48 @@ function jsonFromForm(form){
 }
 
 function submitComment(form) {
-  let commentJSON = jsonFromForm(form);
 
-  $("#comment-input").val("");
+  let formData = new FormData(form);
 
-  fetch("/comments", {
-    method: "POST",
-    body: JSON.stringify(commentJSON)
-  })
+  fetch("/blobstore-upload-url?forward=/comments")
+    .then(response => response.text())
+    .then(url => fetch(url, {
+      method: "POST",
+      body: formData
+    }))
     .then(response => response.text())
     .then(deleteKey => {
       refreshComments();
       alert(`Delete key for this comment: ${deleteKey}`);
     });
 
+  $("#comment-input").val("");
+  $("#image-input").val(null);
+
   return false;
 }
 
 class Comment {
-  constructor(id, author, text, sentimentScore) {
+  constructor(id, author, text, sentimentScore, imageURL) {
     this.id = id
     this.author = author;
     this.text = text;
     this.sentimentScore = sentimentScore;
+    this.imageURL = imageURL;
   }
 
   get html() {
-    let comment = new BlogEntry(`${this.sentimentEmoji} ${this.author} says:`, this.text).html;
+
+    let image = `<div class="comment-image-container"><img src="${this.imageURL}" class="drops-shadow"></div>`;
+
+    let content = `
+      <div style="display: flex; justify-content: flex-begin;">
+        ${this.imageURL ? image : ""}
+        <p>${this.text}</p>
+      </div>
+    `;
+
+    let comment = new BlogEntry(`${this.sentimentEmoji} ${this.author} says:`, content).html;
 
     let deleteButton = document.createElement("button");
     deleteButton.innerText = "Delete";
@@ -211,7 +226,13 @@ class CommentLoader {
         commentList.innerHTML = "";
 
         comments.forEach(commentJSON => {
-          let comment = new Comment(commentJSON.id, commentJSON.author, commentJSON.text, commentJSON.sentimentScore);
+          let comment = new Comment(
+            commentJSON.id,
+            commentJSON.author,
+            commentJSON.text,
+            commentJSON.sentimentScore,
+            commentJSON.imageURL
+          );
           commentList.appendChild(comment.html);
         });
       });
