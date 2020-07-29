@@ -11,13 +11,13 @@ public final class Comment {
     public String author;
     public String text;
     public float sentimentScore;
-    public transient String deleteKey;
+    public transient Encrypted<String> authorEmail;
 
-    public Comment(String author, String text, String deleteKey) {
+    public Comment(String author, String text, String authorEmail) {
         this.timestamp = System.currentTimeMillis();
         this.author = author;
         this.text = text;
-        this.deleteKey = deleteKey;
+        this.authorEmail = new Encrypted<String>(authorEmail);
     }
 
     public Comment() {

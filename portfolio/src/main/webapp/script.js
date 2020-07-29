@@ -155,11 +155,7 @@ function submitComment(form) {
     method: "POST",
     body: JSON.stringify(commentJSON)
   })
-    .then(response => response.text())
-    .then(deleteKey => {
-      refreshComments();
-      alert(`Delete key for this comment: ${deleteKey}`);
-    });
+    .then(refreshComments);
 
   return false;
 }
@@ -278,12 +274,18 @@ function deleteComment(id) {
     .then(response => {
       if (response.ok) {
         refreshComments();
+      } else if (response.status == 401) {
+        alert("You have to be signed in to delete comments.");
+      } else if (response.status == 403) {
+        alert("This comment doesn't belong to you.");
       } else {
-        let deleteKey = prompt("Enter delete key for this comment:");
-        fetch(`/comments?id=${id}&deleteKey=${deleteKey}`, {
-          method: "DELETE"
-        })
-          .then(refreshComments);
+        alert("Unknown error occured. Try again.");
       }
     });
+}
+
+function setupLoggedInBasedContent(isLoggedIn) {
+  $("#comment-editor").attr("hidden", !isLoggedIn);
+  $("#user-container").attr("hidden", !isLoggedIn);
+  $("#logged-out-message").attr("hidden", isLoggedIn);
 }

@@ -7,6 +7,9 @@ import java.util.Optional;
 
 import javax.naming.AuthenticationException;
 
+import com.google.appengine.api.users.User;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.cloud.language.v1.Document;
 import com.google.cloud.language.v1.LanguageServiceClient;
 import com.google.cloud.language.v1.Sentiment;
@@ -38,9 +41,7 @@ public class ObjectifyCommentsRepository implements PaginationCommentsRepository
 	}
 
     @Override
-    public String addComment(Comment comment, Optional<String> deleteKey) {
-
-        comment.deleteKey = deleteKey.orElseGet(this::generateDeleteKey);
+    public void addComment(Comment comment) {
 
         try {
             comment.sentimentScore = getSentimentScore(comment.text);
@@ -49,31 +50,21 @@ public class ObjectifyCommentsRepository implements PaginationCommentsRepository
         }
 
         ofy().save().entity(comment).now();
-
-        return comment.deleteKey;
     }
 
     @Override
-    public void deleteComment(long id, String deleteKey) throws AuthenticationException, NotFoundException {
+    public void deleteComment(long id) throws AuthenticationException, NotFoundException {
 
         Comment comment = ofy().load().type(Comment.class).id(id).safe();
 
-        if (comment.deleteKey.equals(deleteKey)) {
+        UserService userService = UserServiceFactory.getUserService();
+        User user = userService.getCurrentUser();
+
+        if (comment.authorEmail.matches(user.getEmail()) || userService.isUserAdmin()) {
             ofy().delete().entity(comment).now();
         } else {
-            throw new AuthenticationException("Incorrect deleteKey was provided");
+            throw new AuthenticationException("This user doesn't have rights to delete this comment");
         }
-
-    }
-
-    private String generateDeleteKey() {
-        StringBuilder builder = new StringBuilder();
-
-        for (int i = 0; i < 10; i++) {
-            builder.append((char) (65 + rng.nextInt(26)));
-        }
-
-        return builder.toString();
     }
 
     private float getSentimentScore(String text) throws IOException {
@@ -83,6 +74,4 @@ public class ObjectifyCommentsRepository implements PaginationCommentsRepository
         languageService.close();
         return sentiment.getScore();
     }
-
-    private SecureRandom rng = new SecureRandom();
 }
