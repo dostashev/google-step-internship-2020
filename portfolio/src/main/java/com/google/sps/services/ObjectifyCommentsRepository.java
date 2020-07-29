@@ -60,7 +60,7 @@ public class ObjectifyCommentsRepository implements PaginationCommentsRepository
         UserService userService = UserServiceFactory.getUserService();
         User user = userService.getCurrentUser();
 
-        if (user.getEmail().equals(comment.authorEmail) || userService.isUserAdmin()) {
+        if (comment.authorEmail.matches(user.getEmail()) || userService.isUserAdmin()) {
             ofy().delete().entity(comment).now();
         } else {
             throw new AuthenticationException("This user doesn't have rights to delete this comment");

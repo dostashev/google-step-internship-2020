@@ -20,6 +20,7 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
+import com.google.sps.data.Encrypted;
 import com.google.sps.services.CommentsValidator;
 import com.google.sps.services.CommentsValidatorImpl;
 import com.google.sps.services.ObjectifyCommentsRepository;
@@ -71,7 +72,7 @@ public final class CommentsServlet extends HttpServlet {
       return;
     }
 
-    comment.authorEmail = userService.getCurrentUser().getEmail();
+    comment.authorEmail = new Encrypted<String>(userService.getCurrentUser().getEmail());
 
     if (commentsValidator.isValid(comment)) {
       commentsRepository.addComment(comment);
