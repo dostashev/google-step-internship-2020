@@ -24,6 +24,7 @@
         <a href="index.html">Home</a>
         <a href="blog.html">Blog</a>
         <a class="active" href="feedback.jsp">Feedback</a>
+        <a href="data.html">Data</a>
       </div>
       <div id="user-container">
         <p>

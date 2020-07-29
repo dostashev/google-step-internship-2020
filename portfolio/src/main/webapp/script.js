@@ -184,9 +184,11 @@ class Comment {
   }
 
   get sentimentEmoji() {
-    let sentimentEmojis = ["🙁", "😕", "😐", "🙂", "😀"];
+    return Comment.sentimentEmojis[Math.floor((this.sentimentScore + 1) * 0.5 * Comment.sentimentEmojis.length)];
+  };
 
-    return sentimentEmojis[Math.floor((this.sentimentScore + 1) * 0.5 * sentimentEmojis.length)];
+  static get sentimentEmojis() {
+    return ["🙁", "😕", "😐", "🙂", "😀"];
   }
 }
 
