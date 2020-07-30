@@ -15,18 +15,62 @@
 package com.google.sps.servlets;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Servlet that returns some example content. TODO: modify this file to handle comments data */
+import com.google.gson.Gson;
+import com.google.sps.data.Comment;
+import com.google.sps.services.CommentsRepository;
+import com.google.sps.services.ObjectifyCommentsRepository;
+
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    response.setContentType("text/html;");
-    response.getWriter().println("<h1>Hello world!</h1>");
+
+    String dataset = request.getParameter("dataset");
+
+    if (dataset == null) {
+      response.setStatus(404);
+      return;
+    }
+
+    if (dataset.equals("sentiments")) {
+      response.getWriter().print(getSerializedSentimentsDataset());
+      return;
+    }
+
+    response.setStatus(404);
+  }
+
+  private String getSerializedSentimentsDataset() {
+
+    List<Comment> comments = commentsRepository.getAllComments();
+
+    List<SentimentsDatasetEntry> dataset = comments.stream()
+      .map(SentimentsDatasetEntry::new)
+      .collect(Collectors.toList());
+
+    return gson.toJson(dataset);
+  }
+
+  private CommentsRepository commentsRepository = new ObjectifyCommentsRepository();
+  private Gson gson = new Gson();
+}
+
+// Unfortunately, Gson doesn't support seralizing local classes, so I had to declare this at file level
+class SentimentsDatasetEntry {
+  long timestamp;
+  float sentimentScore;
+
+  SentimentsDatasetEntry(Comment comment) {
+    this.timestamp = comment.timestamp;
+    this.sentimentScore = comment.sentimentScore;
   }
 }

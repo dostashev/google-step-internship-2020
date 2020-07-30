@@ -7,19 +7,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="script.js"></script>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="charts.js"></script>
   </head>
   <body>
     <div id="content">
       <h1>Daniel Ostashev</h1>
       <div class="topnav">
         <a href="index.html">Home</a>
-        <a class="active" href="blog.html">Blog</a>
+        <a href="blog.html">Blog</a>
         <a href="feedback.jsp">Feedback</a>
-        <a href="data.html">Data</a>
+        <a class="active" href="data.html">Data</a>
       </div>
       <br>
-      <div id="blog-container"></div>
-      <script type="text/javascript">loadBlogEntries()</script>
+      <div id="sentiment-chart"></div>
     </div>
   </body>
 </html>
