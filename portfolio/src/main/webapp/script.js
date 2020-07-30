@@ -169,7 +169,10 @@ class Comment {
   }
 
   get html() {
-    let comment = new BlogEntry(`${this.sentimentEmoji} ${this.author} says:`, this.text).html;
+    let comment = new BlogEntry("", "").html;
+
+    $(comment).find(".blog-entry-header").text(`${this.sentimentEmoji} ${this.author} says:`);
+    $(comment).find(".blog-entry-content").text(this.text);
 
     let deleteButton = document.createElement("button");
     deleteButton.innerText = "Delete";

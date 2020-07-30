@@ -27,8 +27,6 @@ import com.google.sps.services.ObjectifyCommentsRepository;
 import com.google.sps.services.PaginationCommentsRepository;
 import com.googlecode.objectify.NotFoundException;
 
-import org.apache.commons.text.StringEscapeUtils;
-
 /** Servlet that handles GET/POST requests for comments */
 @WebServlet("/comments")
 public final class CommentsServlet extends HttpServlet {
@@ -131,12 +129,6 @@ public final class CommentsServlet extends HttpServlet {
 
   private String getSerializedComments(int page, int pageSize) {
     List<Comment> comments = commentsRepository.getCommentsPage(page, pageSize);
-
-    comments.forEach((comment) -> {
-      comment.author = StringEscapeUtils.escapeHtml4(comment.author);
-      comment.text = StringEscapeUtils.escapeHtml4(comment.text);
-    });
-
     return gson.toJson(comments);
   }
 
