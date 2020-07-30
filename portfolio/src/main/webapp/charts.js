@@ -14,7 +14,6 @@ async function drawSentimentChart() {
   let emojis = Comment.sentimentEmojis;
 
   let options = {
-    title: "Feedback by date",
     height: 400,
     hAxis: {
       title: "Date",
@@ -22,7 +21,7 @@ async function drawSentimentChart() {
     vAxis: {
       title: "Sentiment score",
       ticks: emojis.map((emoji, index) => {
-        return {v: (2 * (index + 0.5) / emojis.length - 1), f: emoji };
+        return {v: (2 * (index + 0.5) / emojis.length - 1), f: emoji};
       }),
       minValue: -1,
       maxValue: 1,
@@ -36,11 +35,41 @@ async function drawSentimentChart() {
   chart.draw(data, options);
 }
 
+async function drawWordTree() {
+
+  let comments = await fetch("/comments?all=true")
+    .then(response => response.json())
+    .then(json => json.flatMap(
+      comment => comment.text
+        .replace(/[^ -~]/g, " ") // Filter out all non-printable chars, replace with space so words don't get joined
+        .split(/[\.;?!]/) // Split into sentences
+        .filter(sentence => sentence.length > 0) // Filter out empty
+    ));
+
+  let data = new google.visualization.DataTable()
+
+  data.addColumn("string", "Comments")
+
+  data.addRows(comments.map(x => [x]));
+
+  let options = {
+    height: 1500,
+    wordtree: {
+      format: 'implicit',
+    }
+  };
+
+  let chart = new google.visualization.WordTree(document.getElementById("wordtree"));
+
+  chart.draw(data, options);
+}
+
 function drawAllCharts() {
   drawSentimentChart();
+  drawWordTree();
 }
 
 window.onload = () => {
-  google.charts.load("current", {"packages": ["corechart"]});
+  google.charts.load("current", {"packages": ["corechart", "wordtree"]});
   google.charts.setOnLoadCallback(drawAllCharts);
 }

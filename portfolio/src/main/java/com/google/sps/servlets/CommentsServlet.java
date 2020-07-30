@@ -37,6 +37,13 @@ public final class CommentsServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
+    String all = request.getParameter("all");
+    if (all != null && all.equals("true")) {
+      response.setContentType(CONTENT_TYPE);
+      response.getWriter().println(getSerializedComments());
+      return;
+    }
+
     int page;
     try {
       page = Integer.parseInt(request.getParameter("page"));
@@ -125,6 +132,11 @@ public final class CommentsServlet extends HttpServlet {
     linkHeader.append(MessageFormat.format("/comments?page={0}&pageSize={1}; rel=\"last\"", lastPageNumber, pageSize));
 
     return linkHeader.toString();
+  }
+
+  private String getSerializedComments() {
+    List<Comment> comments = commentsRepository.getAllComments();
+    return gson.toJson(comments);
   }
 
   private String getSerializedComments(int page, int pageSize) {
