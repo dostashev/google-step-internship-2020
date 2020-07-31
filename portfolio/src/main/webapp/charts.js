@@ -43,7 +43,7 @@ async function drawWordTree() {
       comment => comment.text
         .replace(/[^ -~]/g, " ") // Filter out all non-printable chars, replace with space so words don't get joined
         .split(/[\.;?!]/) // Split into sentences
-        .filter(sentence => sentence.length > 0) // Filter out empty
+        .filter(sentence => sentence.trim().length > 0) // Filter out empty and whitespace-only sentences
     ));
 
   let data = new google.visualization.DataTable()
