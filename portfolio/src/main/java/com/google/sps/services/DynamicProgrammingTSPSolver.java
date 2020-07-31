@@ -9,10 +9,20 @@ import com.google.maps.model.LatLng;
 
 public class DynamicProgrammingTSPSolver implements TSPSolver {
 
+    public static int MAX_POINTS = 10;
+
+    public DynamicProgrammingTSPSolver() {
+        distanceMatrixProvider = new DistanceMatrixProviderImpl();
+    }
+
+    public DynamicProgrammingTSPSolver(DistanceMatrixProvider distanceMatrixProvider) {
+        this.distanceMatrixProvider = distanceMatrixProvider;
+    }
+
     @Override
     public List<Integer> solveTSP(LatLng[] points) throws IllegalArgumentException {
 
-        if (points.length > 10) {
+        if (points.length > MAX_POINTS) {
             throw new IllegalArgumentException("Too many points provided");
         }
 
@@ -97,5 +107,5 @@ public class DynamicProgrammingTSPSolver implements TSPSolver {
 
     private static final long infinity = (long) 1e18;
 
-    private final DistanceMatrixProvider distanceMatrixProvider = new DistanceMatrixProviderImpl();
+    private final DistanceMatrixProvider distanceMatrixProvider;
 }
