@@ -25,6 +25,7 @@
         <a href="blog.html">Blog</a>
         <a class="active" href="feedback.jsp">Feedback</a>
         <a href="data.html">Data</a>
+        <a href="tsp.html">TSP</a>
       </div>
       <div id="user-container">
         <p>
