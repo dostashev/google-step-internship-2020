@@ -22,9 +22,29 @@ import java.util.Comparator;
 public final class FindMeetingQuery {
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
 
-    Event[] sortedEvents = events.stream()
-      .filter(event -> attendeesIntersect(event.getAttendees(), request.getAttendees()))
+    Event[] filteredEvents = events.stream()
+      .filter(event ->
+        attendeesIntersect(event.getAttendees(), request.getAttendees()) ||
+        attendeesIntersect(event.getAttendees(), request.getOptionalAttendees())
+      )
       .toArray(Event[]::new);
+
+    Collection<TimeRange> result = getSuitableTimeRanges(filteredEvents, request);
+
+    if (result.size() == 0) {
+      filteredEvents = events.stream()
+        .filter(event -> attendeesIntersect(event.getAttendees(), request.getAttendees()))
+        .toArray(Event[]::new);
+
+      result = getSuitableTimeRanges(filteredEvents, request);
+    }
+
+    return result;
+  }
+
+  private Collection<TimeRange> getSuitableTimeRanges(Event[] events, MeetingRequest request) {
+
+    Event[] sortedEvents = events.clone();
 
     Arrays.sort(sortedEvents, new Comparator<Event>() {
       @Override
